@@ -1,0 +1,41 @@
+' SPDX-License-Identifier: CC-BY-SA-4.0
+
+' Copyright (C) 2019, 2020 embedded brains GmbH (http://www.embedded-brains.de)
+
+@startuml
+
+start
+
+:Create file: ""spec/component/new.yml"";
+
+note right
+  Create a new file in the specification
+  directory.  For this activity its UID
+  shall be spec:/component/new.  It is
+  located in the file spec/component/new.yml.
+end note
+
+while (Needs a link to a parent requirement?) is (Yes)
+  :Add link to links attribute of file: ""spec/component/new.yml"";
+endwhile (No)
+
+repeat
+  :Edit file: ""spec/component/new.yml"";
+
+  :Add attributes according to your needs and save the file;
+
+  :Commit the changes with a proper message;
+
+  :Send the patch to the devel@rtems.org mailing list for review;
+repeat while (Reviewers demand changes in the new requirement?) is (Yes)
+->No;
+
+if (New requirement was accepted by reviewers?) then (Yes)
+  :Push the commit to the project repository;
+else (No)
+  :Discard the new requirement;
+endif
+
+stop
+
+@enduml

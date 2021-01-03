@@ -1,0 +1,67 @@
+from sys import path
+from os.path import abspath, exists
+path.insert(0, abspath('../common/'))
+
+from waf import cmd_configure_path, cmd_build_path, cmd_options_path, spell, cmd_spell
+
+
+def options(ctx):
+	cmd_options_path(ctx)
+
+def configure(ctx):
+	cmd_configure_path(ctx)
+
+def build(ctx):
+	dirs = [
+		"user",
+		"rtemsconfig",
+		"shell",
+		"ada_user",
+		"bsp_howto",
+		"c_user",
+		"cpu_supplement",
+		"develenv",
+		"filesystem",
+		"networking",
+		"porting",
+		"posix1003_1",
+		"posix_users",
+	]
+
+	p = ctx.path.parent.abspath()
+	for dir in dirs:
+		if not exists("%s/%s" % (p, dir)):
+			ctx.fatal("Directory does not exist: %s/%s" % (p, dir))
+
+	for dir in dirs:
+		files = ctx.path.parent.find_node(dir).ant_glob("**/*.rst")
+		files += ctx.path.parent.find_node(dir).ant_glob("**/*.jpg")
+		files += ctx.path.parent.find_node(dir).ant_glob("**/*.png")
+		files = [x for x in files if x.name.find("/build/") == -1]
+		ctx.path.get_bld().make_node(dir).mkdir() # dirs
+
+		ctx(
+			features    = "subst",
+			is_copy     = True,
+			source      = files,
+			target      = [x.abspath().replace(ctx.srcnode.parent.abspath(), "") for x in files]
+		)
+
+
+	ctx(
+		features    = "subst",
+		is_copy     = True,
+		source      = ctx.srcnode.find_node("index_book.rst"),
+		target      = ["index.rst"]
+	)
+
+
+	sub = {
+		"VERSION":			"1.0",
+		"RELEASE":			"5.0.0",
+		"DOC":				"Manual",
+		"FILE_DOC":			"rtemsmanual",
+		"CONF_EXTRA":		"sys.path.append('%s')" % ctx.env.RTEMS_PATH
+	}
+
+	cmd_build_path(ctx)

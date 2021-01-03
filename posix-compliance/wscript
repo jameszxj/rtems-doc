@@ -1,0 +1,30 @@
+from common.waf import cmd_configure as configure
+from common.waf import cmd_build as doc_build
+from common.waf import cmd_options as options
+from common.waf import spell
+from common.waf import cmd_spell
+from common.waf import linkcheck
+from common.waf import cmd_linkcheck
+
+import posix_rst
+
+def gen_posix_rst(task):
+    c = posix_rst.compliance()
+    c.load(task.inputs[1].abspath())
+    s = ['']
+    for standard in posix_rst.standards:
+        s += ['.. comment SPDX-License-Identifier: CC-BY-SA-4.0',
+              '',
+              posix_rst.standard_names[standard],
+              '*' * len(posix_rst.standard_names[standard]),
+               ''] + c.output(standard)
+    with open(task.outputs[0].abspath(), 'w') as w:
+        from os import linesep
+        w.write(linesep.join(s))
+
+def build(ctx):
+    ctx(rule = gen_posix_rst,
+        source = ['posix_rst.py', 'RTEMS-Standards-Compliance-v9.csv'],
+        target = 'generated-posix-compliance.rst')
+    sources = { 'extra' : ['generated-posix-compliance.rst'] }
+    doc_build(ctx, sources = sources)
